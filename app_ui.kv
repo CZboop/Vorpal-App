@@ -1,0 +1,100 @@
+ScreenManager:
+    SplashScreen:
+    MainScreen:
+    DefinitionsScreen:
+
+<SplashScreen>:
+    name: 'Splash'
+    FloatLayout:
+        MDLabel:
+            text: "Vorpal Dictionary"
+            pos_hint: {'center_x':.5, 'center_y':.78}
+            size_hint: 1.0, 0.2
+            font_style: 'H4'
+            font_size: '60sp'
+            color: (1,1,1,1)
+            halign: 'center'
+
+        MDLabel:
+            text: "Define made up words"
+            pos_hint: {'center_x':.5, 'center_y':.4}
+            size_hint: 1.0, 0.2
+            font_style: 'H5'
+            color: (1,1,1,1)
+            halign: 'center'
+
+        MDIcon:
+            icon: 'bookshelf'
+            pos_hint: {'center_x':.5, 'center_y':.55}
+            halign: 'center'
+
+        MDRaisedButton:
+            text: 'Begin!'
+            size_hint: 0.6, 0.1
+            pos_hint: {'center_x': .5, 'center_y': .2}
+            font_style: 'H5'
+            on_release:
+                app.setup_model()
+                root.manager.transition.direction='left'
+                root.manager.current = 'Main'
+
+
+<MainScreen>:
+    id: main
+    name: "Main"
+    FloatLayout:
+        MDLabel:
+            text: "******"
+            pos_hint: {'center_x':.5, 'y':.73}
+            size_hint: 1.0, 0.2
+            font_style: 'H5'
+            color: (1,1,1,1)
+            halign: 'center'
+
+        MDToolbar:
+            id: toolbar
+            title: 'Menu'
+            pos_hint: {'top': 1}
+            elevation: 15
+            left_action_items: [["menu", lambda x: nav_drawer.set_state("toggle")]]
+
+        MDToolbar:
+            id: match_scorebar
+            title: 'Score: 0/0'
+            elevation: 15
+            pos_hint: {'bottom': 1}
+
+    MDNavigationDrawer:
+        id: nav_drawer
+        FloatLayout:
+            size_hint: 1.0, 1.0
+
+<DefinitionsScreen>:
+    id: definitions
+    name: "Definitions"
+    FloatLayout:
+        MDLabel:
+            text: "******"
+            pos_hint: {'center_x':.5, 'y':.73}
+            size_hint: 1.0, 0.2
+            font_style: 'H5'
+            color: (1,1,1,1)
+            halign: 'center'
+
+        MDToolbar:
+            id: toolbar
+            title: 'Menu'
+            pos_hint: {'top': 1}
+            elevation: 15
+            left_action_items: [["menu", lambda x: nav_drawer.set_state("toggle")]]
+
+        MDToolbar:
+            id: match_scorebar
+            title: 'Score: 0/0'
+            elevation: 15
+            pos_hint: {'bottom': 1}
+
+    MDNavigationDrawer:
+        id: nav_drawer
+        FloatLayout:
+            size_hint: 1.0, 1.0
