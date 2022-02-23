@@ -34,7 +34,7 @@ ScreenManager:
             pos_hint: {'center_x': .5, 'center_y': .2}
             font_style: 'H5'
             on_release:
-                app.setup_model()
+                app.load_words()
                 root.manager.transition.direction='left'
                 root.manager.current = 'Main'
 
@@ -44,12 +44,37 @@ ScreenManager:
     name: "Main"
     FloatLayout:
         MDLabel:
+            id: prompttext
             text: "******"
-            pos_hint: {'center_x':.5, 'y':.73}
+            pos_hint: {'center_x':.5, 'y':.65}
             size_hint: 1.0, 0.2
-            font_style: 'H5'
+            font_style: 'H4'
             color: (1,1,1,1)
             halign: 'center'
+
+        MDTextField:
+            id: def_input
+            pos_hint: {'center_x':.5, 'y':.5}
+            size_hint: 0.8, 0.1
+            hint_text: "Enter your definition"
+
+        MDRaisedButton:
+            id: submit_btn
+            text: "Submit"
+            pos_hint: {'center_x':.5, 'y':.35}
+            size_hint: 0.8, 0.1
+            font_style: 'H5'
+            on_release:
+                app.submit(def_input.text)
+
+        MDRaisedButton:
+            id: skip_btn
+            text: "Skip Word"
+            pos_hint: {'center_x':.5, 'y':.20}
+            size_hint: 0.8, 0.1
+            font_style: 'H5'
+            on_release:
+                app.skip()
 
         MDToolbar:
             id: toolbar
