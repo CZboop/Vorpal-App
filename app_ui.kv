@@ -45,7 +45,7 @@ ScreenManager:
     FloatLayout:
         MDLabel:
             id: prompttext
-            text: "******"
+            text: "Generating words..."
             pos_hint: {'center_x':.5, 'y':.65}
             size_hint: 1.0, 0.2
             font_style: 'H4'
@@ -84,8 +84,8 @@ ScreenManager:
             left_action_items: [["menu", lambda x: nav_drawer.set_state("toggle")]]
 
         MDToolbar:
-            id: match_scorebar
-            title: 'Score: 0/0'
+            id: bottombar
+            title: ''
             elevation: 15
             pos_hint: {'bottom': 1}
 
