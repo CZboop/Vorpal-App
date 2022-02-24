@@ -38,6 +38,7 @@ ScreenManager:
                 app.load_words()
                 root.manager.transition.direction='left'
                 root.manager.current = "Generating"
+                app.start_animation()
 
 
 <MainScreen>:
@@ -46,7 +47,7 @@ ScreenManager:
     FloatLayout:
         MDLabel:
             id: prompttext
-            text: "Generating words..."
+            text: "..."
             pos_hint: {'center_x':.5, 'y':.65}
             size_hint: 1.0, 0.2
             font_style: 'H4'
@@ -130,10 +131,11 @@ ScreenManager:
     name: "Generating"
     FloatLayout:
         MDLabel:
-            text: 'GENERATING...'
+            id: generating_label
+            text: 'Generating'
             pos_hint: {'center_x':.5, 'center_y':.5}
             size_hint: 1.0, 0.2
             # font_style: 'H6'
-            font_size: '60sp'
+            font_size: '50sp'
             color: (1,1,1,1)
             halign: 'center'

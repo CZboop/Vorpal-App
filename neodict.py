@@ -26,11 +26,8 @@ import io
 from tensorflow import keras
 from tensorflow.keras import layers
 import threading
-
-# TODO:
-# add generating screen?
-# switch generation to storing in class property rather than text etc
-# make the neural net stop when the app is exited
+from time import time
+from kivy.animation import Animation
 
 # creating a screen manager
 class Manager(ScreenManager):
@@ -83,9 +80,6 @@ class neoDict(MDApp):
 
         # starting thread for neural network.....
         threading.Thread(target=self.generate_words, daemon=True).start()
-        # nice seems to work well, but need to have something in place to stop the neural net loop when app is exited
-        # could always start it with some of the premade ones
-        # TODO: add generating screen and manage switch to definitions after first epoch or whenever
 
         # loading kv file with app components
         kv_file = Builder.load_file('app_ui.kv')
@@ -107,11 +101,10 @@ class neoDict(MDApp):
         self.prompt_word = self.words_list[0]
         prompt_text = "What does \n {} \n mean?".format(self.prompt_word)
         self.root.get_screen('Main').ids.prompttext.text = prompt_text
-        # and add a skip word button, exit button?, and text input to ui
+
 
 
     # convert to full dictionary entry
-
     # makes a fake phonetic version with direct substitution of letters
     def make_phonetic(self, word):
       letters_phon = "æɓçɖɘɸɡʜɪjkɭɰɲøpqʁstʊʋwχyʒ"
@@ -183,7 +176,7 @@ class neoDict(MDApp):
 
         for epoch in range(epochs):
             model.fit(x, y, batch_size=batch_size, epochs=1)
-            print("Generating... \n Epoch: " + str(epoch))
+            # print("Generating... \n Epoch: " + str(epoch))
 
             start_index = random.randint(0, len(text) - maxlen - 1)
             for diversity in [0.2, 0.5, 1.0, 1.2]:
@@ -202,15 +195,14 @@ class neoDict(MDApp):
                 # print("Generated: ", generated)
 
                 if self.generated_words == []:
+                    self.generating_ani.join()
                     self.root.current = 'Main'
+                    self.set_word()
 
                 self.generated_words = set([i for i in self.generated_words + generated.split(" ") if len(i) > 0])
                 print(self.generated_words)
 
-                #commenting out the write to text for now, may add something on exit etc.
-                # with open("generated_adjs.txt", "a") as txt:
-                #   # tend to get a lot of repeats for some seeds, filter out when reading back the file
-                #   txt.write(generated + " ")
+
         model.save('adj_generate_model.h5')
         generated_words = open('generated_adjs.txt', 'r')
         generated_words = generated_words.read()
@@ -234,10 +226,18 @@ class neoDict(MDApp):
     def on_request_close(self, *args):
         print("CLOSINGGGGGG!!!!!!!!!")
 
-    def handle_generate_transition(self):
-        while self.generated_words == []:
-            # basically have a loop that checks if the property has had words added to it and switch screen after
-            pass
+    def animate_generating_txt(self):
+        gen_label = self.root.get_screen('Generating').ids.generating_label
+
+        anim = Animation(color=(0, 0, 0, 1), duration=.5) + Animation(color=(1, 1, 1, 1), duration=.5)
+        anim.repeat = True
+
+        anim.start(gen_label)
+
+    def start_animation(self):
+        self.generating_ani = threading.Thread(target=self.animate_generating_txt, daemon=True)
+        self.generating_ani.start()
+
 
 
 # running the app
