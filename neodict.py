@@ -29,6 +29,12 @@ import threading
 from time import time
 from kivy.animation import Animation
 
+#TODO: add menu/nav items on all screens to show previous definitions (atm probs no need for other nav)
+# possibly account for running out of words during the process? would probs essentially be reusing the thing of when not empty list to revert
+# and just if it runs out go back to the generating screen until....
+# update the definitions screen whenever one added
+# implement save to file on menu button click
+
 # creating a screen manager
 class Manager(ScreenManager):
     pass
@@ -106,37 +112,49 @@ class neoDict(MDApp):
         prompt_text = "What does \n {} \n mean?".format(self.prompt_word)
         self.root.get_screen('Define').ids.prompttext.text = prompt_text
 
-
-
     # convert to full dictionary entry
     # makes a fake phonetic version with direct substitution of letters
     def make_phonetic(self, word):
+        # can't handle non-lowercase alphabetical? seems to be subbing the actual definition not just the word? can handle as soon as know...
       letters_phon = "æɓçɖɘɸɡʜɪjkɭɰɲøpqʁstʊʋwχyʒ"
       letters_alph = "abcdefghijklmnopqrstuvwxyz"
       replaced = [letters_phon[letters_alph.index(i)] for i in word]
       return "/{}/".format("".join(replaced))
 
     # puts everything together and appends entry to text file
-    def make_entries(self, filename='new_dictionary'):
-      for key, value in definitions_dict.items():
-        entry = key + "\n adjective \n" + make_phonetic(key) + "\n" + value[0] + "\n" + "- {}".format(value[1])
+    # probably not needed and may cause issues if some formatted differently
+    def make_entries(self):
+        # adjust this to add to the definitions screen
+        # create a label? if possible
+        for key, value in self.definitions_dict.items():
+            #just add some newlines in between and join together
+            self.definitions_dict[key] = key + " \n " + "[adjective]" + "\n" + " \n ".join(value) + "\n\n"
+        # need to add entries to definitions screen not just make for saving to file!
+        #*can probably remove this function!**
 
-        with open(filename + ".txt", "a") as txt:
-                txt.write(entry + "\n\n")
+    def update_definition_screen(self):
+        text_to_display = ""
+        for key, value in self.definitions_dict:
+            text_to_display += key + " \n " + " \n ".join(value) + "\n\n"
+        self.root.get_screen('Definitions').ids.definitions_text.text =  text_to_display
 
     def submit(self, definition):
         # switch text to ask for example in a sentence, maybe have a different screen
         self.root.get_screen('Example').ids.exampleprompttext.text = 'Ok. And what is an example of {} in a sentence'.format(self.prompt_word)
-        self.definitions_dict[self.prompt_word] = [definition]
+        phonetic = self.make_phonetic(self.prompt_word)
+        self.definitions_dict[self.prompt_word] = [phonetic]
+        self.definitions_dict[self.prompt_word].append(definition)
 
         self.root.current = 'Example'
 
     def example_submit(self, example):
         # need to add to dict which will be class property
+
         self.definitions_dict[self.prompt_word].append(example)
+        # actually could probably convert to phonetic first and then store the whole thing with newlines etc.?
+
         print(self.definitions_dict.get(self.prompt_word))
         print('Submitted example of use')
-
 
     def skip(self):
         self.words_list = self.words_list[1:]
@@ -181,7 +199,6 @@ class neoDict(MDApp):
 
         model = keras.models.load_model('adj_generate_model.h5', custom_objects=None, compile=True, options=None)
 
-
         epochs = 40
         batch_size = 128
 
@@ -213,7 +230,6 @@ class neoDict(MDApp):
                 self.generated_words = set([i for i in self.generated_words + generated.split(" ") if len(i) > 0])
                 print(self.generated_words)
 
-
         model.save('adj_generate_model.h5')
         generated_words = open('generated_adjs.txt', 'r')
         generated_words = generated_words.read()
@@ -233,9 +249,8 @@ class neoDict(MDApp):
         probas = np.random.multinomial(1, preds, 1)
         return np.argmax(probas)
 
-
     def on_request_close(self, *args):
-        print("CLOSINGGGGGG!!!!!!!!!")
+        print("closing")
 
     def animate_generating_txt(self):
         gen_label = self.root.get_screen('Generating').ids.generating_label
@@ -249,7 +264,12 @@ class neoDict(MDApp):
         self.generating_ani = threading.Thread(target=self.animate_generating_txt, daemon=True)
         self.generating_ani.start()
 
-
+    def save_to_file(self, filename='definitions_test'):
+        # give a lil dialog box to ask if they want to change the filename?
+        # self.make_entries()
+        with open(filename + '.txt', 'w', encoding="utf-8") as file:
+            for key, value in self.definitions_dict.items():
+                file.write(key + " \n " + "[adjective]" + "\n" + " \n ".join(value) + "\n\n")
 
 # running the app
 if __name__ == '__main__':
