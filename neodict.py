@@ -28,8 +28,7 @@ from tensorflow.keras import layers
 import threading
 from time import time
 from kivy.animation import Animation
-
-# todo: maybe have it auto skip words that are real english words? may be slow/unnecessary tho
+from nltk.corpus import words
 
 # creating a screen manager
 class Manager(ScreenManager):
@@ -204,7 +203,7 @@ class neoDict(MDApp):
                     sentence = sentence[1:] + next_char
                     generated += next_char
 
-                self.generated_words = list(set([i for i in self.generated_words + generated.split(" ") if len(i) > 0]))
+                self.generated_words = list(set([i for i in self.generated_words + generated.split(" ") if len(i) > 0 and i not in words.words()]))
                 random.shuffle(self.generated_words)
 
                 if self.root.current == 'Generating':
