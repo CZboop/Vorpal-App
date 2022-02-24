@@ -127,9 +127,14 @@ class neoDict(MDApp):
     def submit(self, definition):
         # switch text to ask for example in a sentence, maybe have a different screen
         self.root.get_screen('Example').ids.exampleprompttext.text = 'Ok. And what is an example of {} in a sentence'.format(self.prompt_word)
+        self.definitions_dict[self.prompt_word] = [definition]
+
         self.root.current = 'Example'
 
     def example_submit(self, example):
+        # need to add to dict which will be class property
+        self.definitions_dict[self.prompt_word].append(example)
+        print(self.definitions_dict.get(self.prompt_word))
         print('Submitted example of use')
 
 
