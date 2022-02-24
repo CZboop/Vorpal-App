@@ -32,10 +32,8 @@ from kivy.animation import Animation
 #TODO:
 # possibly account for running out of words during the process? would probs essentially be reusing the thing of when not empty list to revert
 # and just if it runs out go back to the generating screen until....
-# update the definitions screen whenever one added
-# remove phonetic from in app definitions screen (most not supported)
-# clear the input each time
-# maybe have it auto skip words that are real english words? may be slow/unnecessary tho 
+# maybe have it auto skip words that are real english words? may be slow/unnecessary tho
+# account for dashes in some words when switching to phonetics (just use the original char if not in the a-z string)
 
 # creating a screen manager
 class Manager(ScreenManager):
@@ -70,10 +68,11 @@ class neoDict(MDApp):
 
     # building the app from kv file and screen class instances
     def build(self):
-        # on close event for ending threads etc
+        # on close event for potentially ending threads etc
         Window.bind(on_request_close=self.on_request_close)
         #changing window name from default
         self.title = 'Vorpal Dictionary'
+
         # setting some colour themes
         self.theme_cls.primary_palette = "Blue"
         self.theme_cls.theme_style = "Dark"
@@ -89,18 +88,17 @@ class neoDict(MDApp):
         self.gen_screen = GeneratingScreen()
         sm.add_widget(self.gen_screen)
 
-
-        # starting thread for neural network.....
+        # starting thread for neural network
         threading.Thread(target=self.generate_words, daemon=True).start()
 
         # loading kv file with app components
         kv_file = Builder.load_file('app_ui.kv')
 
-        #returning the loaded app with screen manager root
+        #returning the loaded app with screen manager as root
         return kv_file
 
     def load_words(self):
-        #load the file, get words into a list and start sending to app or
+        #method to optionally load the pregenerated words from a file, not in use currently/not the way words are given
         generated_words = open('generated_adjs.txt', 'r')
         generated_words = generated_words.read()
 
@@ -110,14 +108,13 @@ class neoDict(MDApp):
         self.definitions_dict = {}
 
     def set_word(self):
-        self.prompt_word = self.words_list[0]
+        self.prompt_word = self.generated_words[0]
         prompt_text = "What does \n {} \n mean?".format(self.prompt_word)
         self.root.get_screen('Define').ids.prompttext.text = prompt_text
 
     # convert to full dictionary entry
     # makes a fake phonetic version with direct substitution of letters
     def make_phonetic(self, word):
-        # can't handle non-lowercase alphabetical? seems to be subbing the actual definition not just the word? can handle as soon as know...
       letters_phon = "æɓçɖɘɸɡʜɪjkɭɰɲøpqʁstʊʋwχyʒ"
       letters_alph = "abcdefghijklmnopqrstuvwxyz"
       replaced = [letters_phon[letters_alph.index(i)] for i in word]
@@ -160,10 +157,13 @@ class neoDict(MDApp):
         self.root.current = 'Define'
         self.update_definition_screen()
         print('Submitted example of use')
+        self.check_not_out_of_words()
 
     def skip(self):
-        self.words_list = self.words_list[1:]
-        self.set_word()
+        self.generated_words = self.generated_words[1:]
+        self.check_not_out_of_words()
+        if self.root.current !='Generating':
+            self.set_word()
 
     def generate_words(self):
         # lstm text gen, just store in a class property and can then have an option to save the result of later processing as file or pickle and reload?
@@ -227,24 +227,26 @@ class neoDict(MDApp):
                     generated += next_char
                 # print("Generated: ", generated)
 
-                if self.generated_words == []:
+                self.generated_words = list(set([i for i in self.generated_words + generated.split(" ") if len(i) > 0]))
+                random.shuffle(self.generated_words)
+
+                if self.root.current == 'Generating':
                     self.generating_ani.join()
                     self.root.current = 'Define'
                     self.set_word()
 
-                self.generated_words = set([i for i in self.generated_words + generated.split(" ") if len(i) > 0])
                 print(self.generated_words)
 
-        model.save('adj_generate_model.h5')
-        generated_words = open('generated_adjs.txt', 'r')
-        generated_words = generated_words.read()
+        # model.save('adj_generate_model.h5')
+        # generated_words = open('generated_adjs.txt', 'r')
+        # generated_words = generated_words.read()
 
-        words_list = list([i for i in set(generated_words.split(" ")) if len(i) > 0])
+        # words_list = list([i for i in set(generated_words.split(" ")) if len(i) > 0])
 
         # rewriting the file without repeated words
-        with open("generated_adjs.txt", "w") as txt:
-          for i in words_list:
-                  txt.write(i + "\n")
+        # with open("generated_adjs.txt", "w") as txt:
+        #   for i in words_list:
+        #           txt.write(i + "\n")
 
     def sample(self, preds, temperature=1.0):
         preds = np.asarray(preds).astype("float64")
@@ -275,6 +277,12 @@ class neoDict(MDApp):
         with open(filename + '.txt', 'w', encoding="utf-8") as file:
             for key, value in self.definitions_dict.items():
                 file.write(key + " \n " + "[adjective]" + "\n" + " \n ".join(value) + "\n\n")
+
+    def check_not_out_of_words(self):
+        if len(self.generated_words) == 0:
+            # go to generate screen basically and think the existing logic might handle it from there?
+            self.root.current = 'Generating'
+
 
 # running the app
 if __name__ == '__main__':
