@@ -39,7 +39,10 @@ class SplashScreen(Screen):
     pass
 
 # for the main game
-class MainScreen(Screen):
+class DefineScreen(Screen):
+    pass
+
+class ExampleScreen(Screen):
     pass
 
 # loading screen for while words are generating
@@ -71,12 +74,13 @@ class neoDict(MDApp):
         sm = ScreenManager()
         self.splash_screen = SplashScreen()
         sm.add_widget(self.splash_screen)
-        self.main_screen = MainScreen()
-        sm.add_widget(self.main_screen)
-        self.def_screen = DefinitionsScreen()
-        sm.add_widget(self.def_screen)
+        self.define_screen = DefineScreen()
+        sm.add_widget(self.define_screen)
+        self.example_screen = ExampleScreen()
+        sm.add_widget(self.example_screen)
         self.gen_screen = GeneratingScreen()
         sm.add_widget(self.gen_screen)
+
 
         # starting thread for neural network.....
         threading.Thread(target=self.generate_words, daemon=True).start()
@@ -100,7 +104,7 @@ class neoDict(MDApp):
     def set_word(self):
         self.prompt_word = self.words_list[0]
         prompt_text = "What does \n {} \n mean?".format(self.prompt_word)
-        self.root.get_screen('Main').ids.prompttext.text = prompt_text
+        self.root.get_screen('Define').ids.prompttext.text = prompt_text
 
 
 
@@ -122,9 +126,11 @@ class neoDict(MDApp):
 
     def submit(self, definition):
         # switch text to ask for example in a sentence, maybe have a different screen
-        self.root.get_screen('Main').ids.prompttext.text = 'Ok. And what is an example of {} in a sentence'.format(self.prompt_word)
-        self.state = "example"
-        # could also do
+        self.root.get_screen('Example').ids.exampleprompttext.text = 'Ok. And what is an example of {} in a sentence'.format(self.prompt_word)
+        self.root.current = 'Example'
+
+    def example_submit(self, example):
+        print('Submitted example of use')
 
 
     def skip(self):
@@ -196,7 +202,7 @@ class neoDict(MDApp):
 
                 if self.generated_words == []:
                     self.generating_ani.join()
-                    self.root.current = 'Main'
+                    self.root.current = 'Define'
                     self.set_word()
 
                 self.generated_words = set([i for i in self.generated_words + generated.split(" ") if len(i) > 0])

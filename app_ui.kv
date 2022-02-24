@@ -1,8 +1,9 @@
 ScreenManager:
     SplashScreen:
-    MainScreen:
+    DefineScreen:
     DefinitionsScreen:
     GeneratingScreen:
+    ExampleScreen:
 
 <SplashScreen>:
     name: 'Splash'
@@ -41,9 +42,9 @@ ScreenManager:
                 app.start_animation()
 
 
-<MainScreen>:
-    id: main
-    name: "Main"
+<DefineScreen>:
+    id: define
+    name: "Define"
     FloatLayout:
         MDLabel:
             id: prompttext
@@ -96,17 +97,33 @@ ScreenManager:
         FloatLayout:
             size_hint: 1.0, 1.0
 
-<DefinitionsScreen>:
-    id: definitions
-    name: "Definitions"
+<ExampleScreen>:
+    id: example
+    name: "Example"
     FloatLayout:
         MDLabel:
-            text: "******"
-            pos_hint: {'center_x':.5, 'y':.73}
+            id: exampleprompttext
+            text: ""
+            pos_hint: {'center_x':.5, 'y':.65}
             size_hint: 1.0, 0.2
-            font_style: 'H5'
+            font_style: 'H4'
             color: (1,1,1,1)
             halign: 'center'
+
+        MDTextField:
+            id: example_input
+            pos_hint: {'center_x':.5, 'y':.5}
+            size_hint: 0.8, 0.1
+            hint_text: "Enter your definition"
+
+        MDRaisedButton:
+            id: example_submit_btn
+            text: "Submit"
+            pos_hint: {'center_x':.5, 'y':.35}
+            size_hint: 0.8, 0.1
+            font_style: 'H5'
+            on_release:
+                app.example_submit(example_input.text)
 
         MDToolbar:
             id: toolbar
@@ -116,8 +133,8 @@ ScreenManager:
             left_action_items: [["menu", lambda x: nav_drawer.set_state("toggle")]]
 
         MDToolbar:
-            id: match_scorebar
-            title: 'Score: 0/0'
+            id: bottombar
+            title: ''
             elevation: 15
             pos_hint: {'bottom': 1}
 
