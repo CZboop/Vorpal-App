@@ -29,7 +29,7 @@ import threading
 from time import time
 from kivy.animation import Animation
 
-# maybe have it auto skip words that are real english words? may be slow/unnecessary tho
+# todo: maybe have it auto skip words that are real english words? may be slow/unnecessary tho
 
 # creating a screen manager
 class Manager(ScreenManager):
@@ -116,17 +116,6 @@ class neoDict(MDApp):
       replaced = [letters_phon[letters_alph.index(i)] for i in word if i in letters_alph]
       return "/{}/".format("".join(replaced))
 
-    # puts everything together and appends entry to text file
-    # probably not needed and may cause issues if some formatted differently
-    def make_entries(self):
-        # adjust this to add to the definitions screen
-        # create a label? if possible
-        for key, value in self.definitions_dict.items():
-            #just add some newlines in between and join together
-            self.definitions_dict[key] = key + " \n " + "[adjective]" + "\n" + " \n ".join(value) + "\n\n"
-        # need to add entries to definitions screen not just make for saving to file!
-        #*can probably remove this function!**
-
     def update_definition_screen(self):
         text_to_display = ""
         for key, value in self.definitions_dict.items():
@@ -134,7 +123,6 @@ class neoDict(MDApp):
         self.root.get_screen('Definitions').ids.definitions_text.text =  text_to_display
 
     def submit(self, definition):
-        # switch text to ask for example in a sentence, maybe have a different screen
         self.root.get_screen('Example').ids.exampleprompttext.text = 'Ok. And what is an example of {} in a sentence'.format(self.prompt_word)
         phonetic = self.make_phonetic(self.prompt_word)
         self.definitions_dict[self.prompt_word] = [phonetic]
@@ -145,10 +133,9 @@ class neoDict(MDApp):
     def example_submit(self, example):
         # need to add to dict which will be class property
         self.definitions_dict[self.prompt_word].append(example)
-        # actually could probably convert to phonetic first and then store the whole thing with newlines etc.?
 
         print(self.definitions_dict.get(self.prompt_word))
-        # here need to add logic to go on to the next word - new word and back to the screen
+        # logic to go on to the next word - new word and back to the definition screen
         self.skip()
         self.root.current = 'Define'
         self.update_definition_screen()
@@ -170,10 +157,8 @@ class neoDict(MDApp):
         adjs = adjs_df.word.tolist()
         adjs = [i.replace(" ", "") for i in adjs]
         text = " ".join(adjs).lower().replace("\"", "")
-        # print(text[:100], len(text))
 
         chars = sorted(list(set(text)))
-        # print(chars)
 
         # making dicts for encoding of characters
         char_indices = dict((v, c) for c,v in enumerate(chars))
@@ -190,7 +175,7 @@ class neoDict(MDApp):
 
         x = np.zeros((len(sequences), maxlen, len(chars)), dtype=np.bool)
         y = np.zeros((len(sequences), len(chars)), dtype=np.bool)
-        #
+
         for i, sequence in enumerate(sequences):
             for t, char in enumerate(sequence):
                 x[i, t, char_indices[char]] = 1
@@ -202,8 +187,7 @@ class neoDict(MDApp):
         batch_size = 128
 
         for epoch in range(epochs):
-            model.fit(x, y, batch_size=batch_size, epochs=1)
-            # print("Generating... \n Epoch: " + str(epoch))
+            model.fit(x, y, batch_size=batch_size, epochs = 1)
 
             start_index = random.randint(0, len(text) - maxlen - 1)
             for diversity in [0.2, 0.5, 1.0, 1.2]:
@@ -219,7 +203,6 @@ class neoDict(MDApp):
                     next_char = indices_char[next_index]
                     sentence = sentence[1:] + next_char
                     generated += next_char
-                # print("Generated: ", generated)
 
                 self.generated_words = list(set([i for i in self.generated_words + generated.split(" ") if len(i) > 0]))
                 random.shuffle(self.generated_words)
@@ -253,17 +236,15 @@ class neoDict(MDApp):
         self.generating_ani.start()
 
     def save_to_file(self, filename='definitions_test'):
-        # give a lil dialog box to ask if they want to change the filename?
-        # self.make_entries()
+        #todo: maybe give a dialog box style prompt to ask if they want to change the file name
         with open(filename + '.txt', 'w', encoding="utf-8") as file:
             for key, value in self.definitions_dict.items():
                 file.write(key + " \n " + "[adjective]" + "\n" + " \n ".join(value) + "\n\n")
 
     def check_not_out_of_words(self):
         if len(self.generated_words) == 0:
-            # go to generate screen basically and think the existing logic might handle it from there?
+            # go to generate screen and logic already in place to switch back as soon as there are words again
             self.root.current = 'Generating'
-
 
 # running the app
 if __name__ == '__main__':
