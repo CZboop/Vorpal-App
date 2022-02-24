@@ -149,11 +149,14 @@ class neoDict(MDApp):
 
     def example_submit(self, example):
         # need to add to dict which will be class property
-
         self.definitions_dict[self.prompt_word].append(example)
         # actually could probably convert to phonetic first and then store the whole thing with newlines etc.?
 
         print(self.definitions_dict.get(self.prompt_word))
+        # here need to add logic to go on to the next word - new word and back to the screen
+        self.skip()
+        self.root.current = 'Define'
+
         print('Submitted example of use')
 
     def skip(self):
