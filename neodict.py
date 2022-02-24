@@ -35,6 +35,7 @@ from kivy.animation import Animation
 # update the definitions screen whenever one added
 # remove phonetic from in app definitions screen (most not supported)
 # clear the input each time
+# maybe have it auto skip words that are real english words? may be slow/unnecessary tho 
 
 # creating a screen manager
 class Manager(ScreenManager):
