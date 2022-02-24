@@ -29,11 +29,7 @@ import threading
 from time import time
 from kivy.animation import Animation
 
-#TODO:
-# possibly account for running out of words during the process? would probs essentially be reusing the thing of when not empty list to revert
-# and just if it runs out go back to the generating screen until....
 # maybe have it auto skip words that are real english words? may be slow/unnecessary tho
-# account for dashes in some words when switching to phonetics (just use the original char if not in the a-z string)
 
 # creating a screen manager
 class Manager(ScreenManager):
@@ -117,7 +113,7 @@ class neoDict(MDApp):
     def make_phonetic(self, word):
       letters_phon = "æɓçɖɘɸɡʜɪjkɭɰɲøpqʁstʊʋwχyʒ"
       letters_alph = "abcdefghijklmnopqrstuvwxyz"
-      replaced = [letters_phon[letters_alph.index(i)] for i in word]
+      replaced = [letters_phon[letters_alph.index(i)] for i in word if i in letters_alph]
       return "/{}/".format("".join(replaced))
 
     # puts everything together and appends entry to text file
@@ -166,8 +162,6 @@ class neoDict(MDApp):
             self.set_word()
 
     def generate_words(self):
-        # lstm text gen, just store in a class property and can then have an option to save the result of later processing as file or pickle and reload?
-
         # loading training data and doing some setup
         adjs_df = pd.read_csv('Adjectives.csv',  usecols=[1], header = 0, delimiter=",", quoting=csv.QUOTE_NONE,
                                encoding='utf-8')
@@ -234,19 +228,6 @@ class neoDict(MDApp):
                     self.generating_ani.join()
                     self.root.current = 'Define'
                     self.set_word()
-
-                print(self.generated_words)
-
-        # model.save('adj_generate_model.h5')
-        # generated_words = open('generated_adjs.txt', 'r')
-        # generated_words = generated_words.read()
-
-        # words_list = list([i for i in set(generated_words.split(" ")) if len(i) > 0])
-
-        # rewriting the file without repeated words
-        # with open("generated_adjs.txt", "w") as txt:
-        #   for i in words_list:
-        #           txt.write(i + "\n")
 
     def sample(self, preds, temperature=1.0):
         preds = np.asarray(preds).astype("float64")
