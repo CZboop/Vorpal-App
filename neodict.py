@@ -29,11 +29,12 @@ import threading
 from time import time
 from kivy.animation import Animation
 
-#TODO: add menu/nav items on all screens to show previous definitions (atm probs no need for other nav)
+#TODO:
 # possibly account for running out of words during the process? would probs essentially be reusing the thing of when not empty list to revert
 # and just if it runs out go back to the generating screen until....
 # update the definitions screen whenever one added
-# implement save to file on menu button click
+# remove phonetic from in app definitions screen (most not supported)
+# clear the input each time
 
 # creating a screen manager
 class Manager(ScreenManager):
@@ -134,8 +135,8 @@ class neoDict(MDApp):
 
     def update_definition_screen(self):
         text_to_display = ""
-        for key, value in self.definitions_dict:
-            text_to_display += key + " \n " + " \n ".join(value) + "\n\n"
+        for key, value in self.definitions_dict.items():
+            text_to_display += key + " \n " + "[adjective]" + "\n" + " \n ".join(value[1:]) + "\n\n"
         self.root.get_screen('Definitions').ids.definitions_text.text =  text_to_display
 
     def submit(self, definition):
@@ -156,7 +157,7 @@ class neoDict(MDApp):
         # here need to add logic to go on to the next word - new word and back to the screen
         self.skip()
         self.root.current = 'Define'
-
+        self.update_definition_screen()
         print('Submitted example of use')
 
     def skip(self):
